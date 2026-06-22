@@ -1,4 +1,5 @@
 # goal-share
+
 実際に一緒にいなくても友達との繋がりを感じられるよう、小さな目標をグループで共有できるWebアプリ
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
