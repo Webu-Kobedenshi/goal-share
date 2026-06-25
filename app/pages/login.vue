@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <script setup lang="ts">
 const { user, login } = useAuth()
 if (user.value) await navigateTo('/dashboard')
@@ -91,3 +92,69 @@ async function onSubmit() {
     </p>
   </div>
 </template>
+=======
+<template>
+  <div class="container">
+    <h1>Login</h1>
+    <form @submit.prevent="login">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" v-model="email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" v-model="password" required />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const email = ref('');
+const password = ref('');
+const router = useRouter();
+
+const login = () => {
+  console.log('Logging in with:', email.value, password.value);
+  router.push('/group');
+};
+</script>
+
+<style scoped>
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+.form-group {
+  margin-bottom: 15px;
+}
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
+</style>
+>>>>>>> Stashed changes
