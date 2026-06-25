@@ -7,19 +7,24 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare && prisma generate"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "nuxt": "^4.4.8",
+    "pg": "^8.21.0",
     "vue": "^3.5.35",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@nuxt/eslint": "^1.16.0",
+    "dotenv": "^17.0.0",
     "eslint": "^10.4.1",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.4",
+    "prisma": "^7.8.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0"
   }
