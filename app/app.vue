@@ -98,7 +98,7 @@ const handleCreateGroup = () => {
   cursor: pointer;
 }
 .actions button[type="button"] {
-  background: #555;
+  background: #e53935;
 }
 .member-list {
   margin-top: 24px;
