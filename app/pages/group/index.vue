@@ -156,16 +156,16 @@ watch(
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  color: #1e293b;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+  color: #4a4038;
 }
 
 .group-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #6fa885 0%, #8fc19f 100%);
   color: #ffffff;
   padding: 24px 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -5px rgba(60, 90, 70, 0.28);
   margin-bottom: 24px;
 }
 
@@ -183,22 +183,24 @@ watch(
 
 .nav-link {
   padding: 8px 16px;
-  background: #0077cc;
+  background: #5e9c7a;
   color: #fff;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .nav-link:hover {
-  opacity: 0.9;
+  transform: translateY(-1px);
+  opacity: 0.92;
 }
 
 .member-section {
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: #fffdfa;
+  border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(120, 100, 70, 0.1);
 }
 </style>

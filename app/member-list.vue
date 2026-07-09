@@ -23,6 +23,10 @@ defineProps<{
 </template>
 
 <style scoped>
+.member-list-container h3 {
+  color: #6b5f52;
+}
+
 .member-list-container {
   margin-top: 20px;
 }
@@ -38,8 +42,14 @@ defineProps<{
 .member-item {
   margin-bottom: 8px;
   list-style-type: none;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background-color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background-color: #ede1c9;
+  color: #4a4038;
+  transition: background-color 0.2s ease;
+}
+
+.member-item:hover {
+  background-color: #e3d4b3;
 }
 </style>

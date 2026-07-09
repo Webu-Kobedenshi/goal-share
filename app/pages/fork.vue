@@ -21,7 +21,7 @@ const handleBack = () => {
     <!-- 初期選択画面 -->
     <template v-if="selectedOption === null">
       <header class="fork-header">
-        <h1>グループを選択してください</h1>
+        <h1>グループ作成/参加</h1>
         <p class="subtitle">グループを新規作成するか、既存グループに参加申請してください</p>
       </header>
 
@@ -123,19 +123,18 @@ const handleBack = () => {
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  color: #1e293b;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+  color: #4a4038;
 }
 
 /* ===== ヘッダー ===== */
 .fork-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #6fa885 0%, #8fc19f 100%);
   color: #ffffff;
   padding: 40px 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -5px rgba(60, 90, 70, 0.28);
   margin-bottom: 32px;
-  text-align: center;
 }
 
 .fork-header h1 {
@@ -147,7 +146,7 @@ const handleBack = () => {
 .subtitle {
   margin: 0;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 400;
 }
 
@@ -159,11 +158,11 @@ const handleBack = () => {
 }
 
 .back-button {
-  background-color: #e2e8f0;
-  color: #1e293b;
+  background-color: #ede1c9;
+  color: #6b5f52;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -171,7 +170,7 @@ const handleBack = () => {
 }
 
 .back-button:hover {
-  background-color: #cbd5e1;
+  background-color: #e3d4b3;
   transform: translateX(-4px);
 }
 
@@ -184,10 +183,11 @@ const handleBack = () => {
 
 /* ===== オプション選択セクション ===== */
 .options-section {
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: #fffdfa;
+  border: 1px solid #ddd0b6;
+  border-radius: 20px;
   padding: 40px 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
 }
 
 .options-container {
@@ -197,9 +197,9 @@ const handleBack = () => {
 }
 
 .option-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  background: #fffefb;
+  border: 2px solid #e4dcce;
+  border-radius: 16px;
   padding: 32px 24px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -211,9 +211,9 @@ const handleBack = () => {
 }
 
 .option-card:hover {
-  border-color: #0f172a;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1);
+  border-color: #6fa885;
+  background: #ffffff;
+  box-shadow: 0 20px 40px -5px rgba(120, 100, 70, 0.15);
   transform: translateY(-4px);
 }
 
@@ -226,22 +226,23 @@ const handleBack = () => {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #4a4038;
 }
 
 .option-card p {
   margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #857b6f;
   font-weight: 400;
 }
 
 /* ===== フォームセクション ===== */
 .form-section {
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: #fffdfa;
+  border: 1px solid #ddd0b6;
+  border-radius: 20px;
   padding: 32px 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
 }
 
 .form-container {
@@ -259,25 +260,26 @@ const handleBack = () => {
 .form-group label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #6b5f52;
 }
 
 .input-field,
 .textarea-field {
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid #d9cbb0;
+  border-radius: 14px;
   font-size: 1rem;
   font-family: inherit;
-  color: #1e293b;
+  color: #4a4038;
+  background: #fffefb;
   transition: all 0.2s ease;
 }
 
 .input-field:focus,
 .textarea-field:focus {
   outline: none;
-  border-color: #0f172a;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+  border-color: #6fa885;
+  box-shadow: 0 0 0 3px rgba(111, 168, 133, 0.3);
 }
 
 .textarea-field {
@@ -296,7 +298,7 @@ const handleBack = () => {
   flex: 1;
   padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -304,22 +306,22 @@ const handleBack = () => {
 }
 
 .cancel-btn {
-  background-color: #e2e8f0;
-  color: #1e293b;
+  background-color: #ede1c9;
+  color: #6b5f52;
 }
 
 .cancel-btn:hover {
-  background-color: #cbd5e1;
+  background-color: #e3d4b3;
 }
 
 .submit-btn {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: #5e9c7a;
   color: #ffffff;
 }
 
 .submit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3);
+  opacity: 0.92;
 }
 
 /* ===== レスポンシブ ===== */

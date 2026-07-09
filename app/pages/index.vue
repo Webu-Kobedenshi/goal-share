@@ -15,8 +15,8 @@
         </div>
 
         <div class="actions">
-          <button type="button" @click="addMember">ユーザーを追加</button>
-          <button type="submit">グループを作成</button>
+          <button type="button" class="secondary" @click="addMember">ユーザーを追加</button>
+          <button type="submit" class="primary">グループを作成</button>
         </div>
       </form>
 
@@ -61,28 +61,40 @@ const handleCreateGroup = () => {
 }
 .group-form {
   margin-top: 32px;
-  padding: 24px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  background: #fff;
+  padding: 28px;
+  border: 1px solid #ddd0b6;
+  border-radius: 20px;
+  background: #fffdfa;
+  box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
 }
 .group-form h1 {
   margin-bottom: 18px;
   font-size: 1.4rem;
+  color: #4a4038;
 }
 .field {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .field label {
   display: block;
   margin-bottom: 6px;
   font-weight: 600;
+  color: #6b5f52;
 }
 .field input {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #d9cbb0;
+  border-radius: 14px;
+  background: #fffefb;
+  color: #4a4038;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.field input:focus {
+  outline: none;
+  border-color: #6fa885;
+  box-shadow: 0 0 0 3px rgba(111, 168, 133, 0.3);
 }
 .actions {
   display: flex;
@@ -90,24 +102,40 @@ const handleCreateGroup = () => {
   flex-wrap: wrap;
 }
 .actions button {
-  padding: 10px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   color: #fff;
-  background: #0077cc;
   cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
-.actions button[type="button"] {
-  background: #e53935;
+.actions button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+.actions button.primary {
+  background: #5e9c7a;
+}
+.actions button.secondary {
+  background: #c1584f;
 }
 .member-list {
   margin-top: 24px;
 }
+.member-list h2 {
+  color: #6b5f52;
+  font-size: 1.1rem;
+}
 .member-list ul {
   margin: 10px 0 0;
-  padding-left: 20px;
+  padding-left: 0;
+  list-style: none;
 }
 .member-list li {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #ede1c9;
+  color: #4a4038;
 }
 </style>
