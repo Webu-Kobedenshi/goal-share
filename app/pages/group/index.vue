@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import MemberList from '../member-list.vue'
+import MemberList from '../../member-list.vue'
 
 interface Member {
   id: number
@@ -140,6 +140,11 @@ watch(
       <h1>{{ group.name }}</h1>
     </header>
 
+    <nav class="group-nav">
+      <NuxtLink to="/group/apply" class="nav-link">参加申請をする</NuxtLink>
+      <NuxtLink to="/group/applications" class="nav-link">申請一覧を見る</NuxtLink>
+    </nav>
+
     <section class="member-section">
       <MemberList :members="group.members" />
     </section>
@@ -168,6 +173,26 @@ watch(
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
+}
+
+.group-nav {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  background: #0077cc;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  opacity: 0.9;
 }
 
 .member-section {
