@@ -6,6 +6,10 @@ const schema = z.object({
   email: z.string().email('メールアドレスの形式が正しくありません'),
   name: z.string().min(1, '名前を入力してください'),
   password: z.string().min(8, 'パスワードは8文字以上にしてください'),
+  passwordConfirm: z.string(),
+}).refine((data) => data.password === data.passwordConfirm, {
+  message: 'パスワードが一致しません',
+  path: ['passwordConfirm'],
 })
 
 export default defineEventHandler(async (event) => {
