@@ -45,6 +45,8 @@
 </template>
 
 <script setup lang="ts">
+import { FetchError } from 'ofetch'
+
 const { loggedIn, fetch: refreshSession } = useUserSession()
 if (loggedIn.value) {
   await navigateTo('/')
@@ -84,8 +86,12 @@ async function submit() {
     })
     await refreshSession()
     await navigateTo('/')
-  } catch (e: any) {
-    error.value = e.data?.message ?? 'エラーが発生しました'
+  } catch (e) {
+    if (e instanceof FetchError) {
+      error.value = e.data?.message ?? 'エラーが発生しました'
+    } else {
+      error.value = 'エラーが発生しました'
+    }
   } finally {
     loading.value = false
   }
