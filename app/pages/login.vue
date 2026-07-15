@@ -99,22 +99,22 @@ async function submit() {
 </script>
 
 <style scoped>
-.login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-.auth-card { background: #fff; border-radius: 12px; padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-.title { font-size: 1.1rem; text-align: center; margin: 0 0 1.25rem; }
-.tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #eee; }
-.tabs button { flex: 1; padding: 0.6rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #888; }
-.tabs button.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; margin-bottom: -2px; font-weight: 600; }
+.login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f2ecdf; color: #4a4038; }
+.auth-card { background: #fffdfa; border: 1px solid #ddd0b6; border-radius: 20px; padding: 2rem; width: 100%; max-width: 380px; box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22); }
+.title { font-size: 1.1rem; text-align: center; margin: 0 0 1.25rem; color: #4a4038; }
+.tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 2px solid #ede1c9; }
+.tabs button { flex: 1; padding: 0.6rem; border: none; background: none; cursor: pointer; font-size: 1rem; color: #857b6f; }
+.tabs button.active { color: #5e9c7a; border-bottom: 2px solid #5e9c7a; margin-bottom: -2px; font-weight: 600; }
 .field { margin-bottom: 1rem; }
-.field label { display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 0.3rem; }
+.field label { display: block; font-size: 0.8rem; color: #6b5f52; margin-bottom: 0.3rem; }
 .input-wrap { position: relative; display: flex; align-items: center; }
-.input-wrap input { width: 100%; padding: 0.6rem 2.4rem 0.6rem 0.8rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-.input-wrap input:focus { outline: none; border-color: #3b82f6; }
-.field input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-.field input:focus { outline: none; border-color: #3b82f6; }
+.input-wrap input { width: 100%; padding: 0.6rem 2.4rem 0.6rem 0.8rem; border: 1px solid #d9cbb0; border-radius: 14px; font-size: 1rem; box-sizing: border-box; background: #fffefb; color: #4a4038; }
+.input-wrap input:focus { outline: none; border-color: #6fa885; box-shadow: 0 0 0 3px rgba(111, 168, 133, 0.3); }
+.field input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #d9cbb0; border-radius: 14px; font-size: 1rem; box-sizing: border-box; background: #fffefb; color: #4a4038; }
+.field input:focus { outline: none; border-color: #6fa885; box-shadow: 0 0 0 3px rgba(111, 168, 133, 0.3); }
 .eye { position: absolute; right: 0.6rem; background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; }
-.submit { width: 100%; padding: 0.75rem; background: #3b82f6; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; }
-.submit:hover:not(:disabled) { background: #2563eb; }
+.submit { width: 100%; padding: 0.75rem; background: #5e9c7a; color: #fff; border: none; border-radius: 999px; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; transition: transform 0.15s ease, opacity 0.15s ease; }
+.submit:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.92; }
 .submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.error { background: #fee2e2; color: #b91c1c; border-radius: 8px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.85rem; }
+.error { background: #f7ded9; color: #a4453c; border-radius: 12px; padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.85rem; }
 </style>

@@ -51,16 +51,16 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  color: #1e293b;
+  font-family: 'Hiragino Sans', 'Noto Sans JP', 'Helvetica Neue', Arial, sans-serif;
+  color: #4a4038;
 }
 
 .page-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #6fa885 0%, #8fc19f 100%);
   color: #ffffff;
   padding: 24px 32px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 25px -5px rgba(60, 90, 70, 0.28);
   margin-bottom: 24px;
 }
 
@@ -73,7 +73,7 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
 .back-link {
   display: inline-block;
   margin-top: 12px;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 0.9rem;
   text-decoration: none;
 }
@@ -83,24 +83,26 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
 }
 
 .applications-section {
-  background-color: #ffffff;
-  border-radius: 16px;
+  background-color: #fffdfa;
+  border: 1px solid #ddd0b6;
+  border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
 }
 
 .empty-state {
   text-align: center;
-  color: #94a3b8;
+  color: #a89e8f;
   padding: 40px 0;
   font-size: 1.1rem;
 }
 
 .application-card {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid #e4dcce;
+  border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
+  background: #fffefb;
 }
 
 .application-card:last-child {
@@ -154,18 +156,18 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
 
 .app-field-label {
   font-weight: 600;
-  color: #64748b;
+  color: #857b6f;
   min-width: 80px;
   flex-shrink: 0;
 }
 
 .app-field-value {
-  color: #1e293b;
+  color: #4a4038;
 }
 
 .app-message {
   margin: 0;
-  color: #475569;
+  color: #6b5f52;
   white-space: pre-wrap;
 }
 
@@ -179,26 +181,25 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
 .btn-reject {
   padding: 8px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 600;
   color: #fff;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-approve:hover,
+.btn-reject:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
 }
 
 .btn-approve {
-  background: #16a34a;
-}
-
-.btn-approve:hover {
-  background: #15803d;
+  background: #5e9c7a;
 }
 
 .btn-reject {
-  background: #dc2626;
-}
-
-.btn-reject:hover {
-  background: #b91c1c;
+  background: #c1584f;
 }
 </style>
