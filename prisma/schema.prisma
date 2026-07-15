@@ -12,10 +12,115 @@ datasource db {
   provider = "postgresql"
 }
 
+enum GroupRole {
+  OWNER
+  MEMBER
+}
+
+enum JoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum GoalSource {
+  USER
+  SYSTEM
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   name         String
   passwordHash String
   createdAt    DateTime @default(now())
+
+  createdGroups Group[]
+  memberships   GroupMember[]
+  joinRequests  GroupJoinRequest[]
+  goals         Goal[]
+  votes         Vote[]
+  reactions     Reaction[]
+}
+
+model Group {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdBy Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator      User               @relation(fields: [createdBy], references: [id])
+  members      GroupMember[]
+  joinRequests GroupJoinRequest[]
+  goals        Goal[]
+}
+
+model GroupMember {
+  id       Int       @id @default(autoincrement())
+  groupId  Int
+  userId   Int
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model GroupJoinRequest {
+  id        Int               @id @default(autoincrement())
+  groupId   Int
+  userId    Int
+  message   String?
+  status    JoinRequestStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Goal {
+  id          Int        @id @default(autoincrement())
+  groupId     Int
+  createdBy   Int?
+  title       String
+  description String?
+  source      GoalSource @default(USER)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  group     Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator   User?      @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  votes     Vote[]
+  reactions Reaction[]
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  goalId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, userId])
+}
+
+model Reaction {
+  id        Int      @id @default(autoincrement())
+  goalId    Int
+  userId    Int
+  emoji     String
+  createdAt DateTime @default(now())
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, userId, emoji])
 }
