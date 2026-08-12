@@ -13,22 +13,14 @@
         </div>
 
         <div class="field">
-          <label for="groupName">グループ名</label>
-          <input id="groupName" v-model="groupName" type="text" placeholder="参加したいグループの名前を入力" />
-        </div>
-
-        <div class="field">
-          <label for="applicantName">申請者名</label>
-          <input id="applicantName" v-model="applicantName" type="text" placeholder="あなたの名前を入力" />
-        </div>
-
-        <div class="field">
           <label for="message">参加メッセージ</label>
           <textarea id="message" v-model="message" placeholder="グループ運営へのメッセージ（任意）" rows="4"></textarea>
         </div>
 
+        <p v-if="error" class="error">{{ error }}</p>
+
         <div class="actions">
-          <button type="submit">申請する</button>
+          <button type="submit" :disabled="submitting">申請する</button>
         </div>
       </form>
     </section>
@@ -39,25 +31,28 @@
 import { ref } from 'vue'
 
 const groupId = ref<number | null>(null)
-const groupName = ref('')
-const applicantName = ref('')
 const message = ref('')
+const error = ref('')
+const submitting = ref(false)
 
-const { addApplication } = useApplications()
-
-const handleSubmit = () => {
-  if (!groupId.value || !groupName.value.trim() || !applicantName.value.trim()) return
-  addApplication({
-    groupId: groupId.value,
-    groupName: groupName.value.trim(),
-    applicantName: applicantName.value.trim(),
-    message: message.value.trim()
-  })
-  groupId.value = null
-  groupName.value = ''
-  applicantName.value = ''
-  message.value = ''
-  navigateTo('/group/applications')
+const handleSubmit = async () => {
+  if (!groupId.value) {
+    error.value = 'グループIDを入力してください'
+    return
+  }
+  submitting.value = true
+  error.value = ''
+  try {
+    await $fetch(`/api/groups/${groupId.value}/join-requests`, {
+      method: 'POST',
+      body: { message: message.value.trim() || undefined },
+    })
+    await navigateTo(`/group?id=${groupId.value}`)
+  } catch (e: any) {
+    error.value = e?.data?.message ?? '申請に失敗しました'
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -141,6 +136,12 @@ const handleSubmit = () => {
   resize: vertical;
 }
 
+.error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
 .actions {
   display: flex;
   gap: 12px;
@@ -156,6 +157,10 @@ const handleSubmit = () => {
   font-size: 1rem;
   font-weight: 600;
   transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.actions button:disabled {
+  opacity: 0.6;
 }
 
 .actions button:hover {

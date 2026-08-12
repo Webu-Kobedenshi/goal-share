@@ -6,24 +6,26 @@
     </header>
 
     <section class="applications-section">
+      <div class="field">
+        <label for="gid">グループID</label>
+        <input id="gid" v-model="groupId" type="number" placeholder="グループIDを入力" class="input-field" />
+        <button class="load-btn" @click="loadApplications">読み込む</button>
+      </div>
+
       <div v-if="applications.length === 0" class="empty-state">
         現在、申請はありません。
       </div>
 
       <div v-for="app in applications" :key="app.id" class="application-card">
         <div class="app-header">
-          <span class="app-group">{{ app.groupName }}</span>
+          <span class="app-group">{{ app.applicantName }}</span>
           <span class="app-badge" :class="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
         </div>
 
         <div class="app-body">
           <div class="app-field">
-            <span class="app-field-label">グループID</span>
-            <span class="app-field-value">{{ app.groupId }}</span>
-          </div>
-          <div class="app-field">
-            <span class="app-field-label">申請者</span>
-            <span class="app-field-value">{{ app.applicantName }}</span>
+            <span class="app-field-label">メール</span>
+            <span class="app-field-value">{{ app.applicantEmail }}</span>
           </div>
           <div v-if="app.message" class="app-field">
             <span class="app-field-label">メッセージ</span>
@@ -31,9 +33,9 @@
           </div>
         </div>
 
-        <div v-if="app.status === 'pending'" class="app-actions">
-          <button class="btn-approve" @click="approve(app.id)">承認</button>
-          <button class="btn-reject" @click="reject(app.id)">却下</button>
+        <div v-if="app.status === 'PENDING'" class="app-actions">
+          <button class="btn-approve" @click="approve(app.id, app.groupId)">承認</button>
+          <button class="btn-reject" @click="reject(app.id, app.groupId)">却下</button>
         </div>
       </div>
     </section>
@@ -41,9 +43,15 @@
 </template>
 
 <script setup lang="ts">
-import { useApplications } from '#imports'
+import { ref } from 'vue'
 
-const { applications, approve, reject, statusLabel, statusClass } = useApplications()
+const groupId = ref<number | null>(null)
+const { applications, fetchApplications, approve, reject, statusLabel, statusClass } = useApplications()
+
+const loadApplications = () => {
+  if (!groupId.value) return
+  fetchApplications(groupId.value)
+}
 </script>
 
 <style scoped>
@@ -88,6 +96,40 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
+}
+
+.field {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  align-items: flex-start;
+}
+
+.field label {
+  font-weight: 600;
+  margin-top: 8px;
+  min-width: 80px;
+}
+
+.input-field {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.load-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .empty-state {
