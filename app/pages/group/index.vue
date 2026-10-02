@@ -13,6 +13,7 @@ interface Goal {
   id: number
   title: string
   description: string | null
+  source: 'USER' | 'SYSTEM'
   createdBy: { id: number; name: string } | null
   createdAt: string
   voteCount: number
@@ -114,7 +115,10 @@ onMounted(fetchGroup)
       </header>
 
       <section class="goals-section">
-        <h2>目標</h2>
+        <div class="goals-head">
+          <h2>目標</h2>
+          <NuxtLink :to="{ path: '/group/goals', query: { id: group.id } }" class="propose-link">目標を提案する →</NuxtLink>
+        </div>
 
         <form v-if="group.myRole === 'OWNER'" class="add-goal-form" @submit.prevent="addGoal">
           <div class="field">
@@ -132,7 +136,8 @@ onMounted(fetchGroup)
             <div class="goal-title">{{ goal.title }}</div>
             <p v-if="goal.description" class="goal-desc">{{ goal.description }}</p>
             <div class="goal-meta">
-              <span v-if="goal.createdBy" class="goal-author">{{ goal.createdBy.name }}</span>
+              <span v-if="goal.source === 'SYSTEM'" class="goal-author">🎲 システム</span>
+              <span v-else-if="goal.createdBy" class="goal-author">{{ goal.createdBy.name }}</span>
               <span class="goal-date">{{ new Date(goal.createdAt).toLocaleDateString('ja-JP') }}</span>
             </div>
             <div class="goal-actions">
@@ -217,6 +222,19 @@ onMounted(fetchGroup)
   font-size: 1.4rem;
   color: #4a4038;
 }
+.goals-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.propose-link {
+  color: #5e9c7a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.propose-link:hover { text-decoration: underline; }
 .add-goal-form {
   margin-bottom: 24px;
   padding: 20px;
