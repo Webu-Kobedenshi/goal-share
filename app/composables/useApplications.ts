@@ -11,45 +11,36 @@ export interface Application {
 
 export const useApplications = () => {
   const applications = ref<Application[]>([])
+  const error = ref('')
 
-  const fetchApplications = async (groupId: number) => {
+  // 権限が無い(403)などの失敗は空配列にせず、理由を error に出す
+  const fetchApplications = async (groupId: number | string) => {
     try {
-      const data = await $fetch<Application[]>(`/api/groups/${groupId}/join-requests`)
-      applications.value = data ?? []
-    } catch {
+      applications.value = await $fetch<Application[]>(`/api/groups/${groupId}/join-requests`)
+      error.value = ''
+    } catch (e) {
       applications.value = []
+      error.value = errorMessage(e, '申請一覧の読み込みに失敗しました')
     }
   }
 
-  const addApplication = async (data: { groupId: number; message?: string }) => {
+  const updateStatus = async (app: Application, status: 'APPROVED' | 'REJECTED') => {
     try {
-      await $fetch(`/api/groups/${data.groupId}/join-requests`, {
-        method: 'POST',
-        body: { message: data.message },
+      await $fetch(`/api/groups/${app.groupId}/join-requests/${app.id}`, {
+        method: 'PATCH',
+        body: { status }
       })
-      return true
-    } catch (e: any) {
-      throw new Error(e?.data?.message ?? '申請に失敗しました')
+      app.status = status
+      error.value = ''
+    } catch (e) {
+      error.value = errorMessage(e, '申請の処理に失敗しました')
+      // 他の人が先に処理した場合などに備えて最新の状態を取り直す
+      await fetchApplications(app.groupId)
     }
   }
 
-  const approve = async (requestId: number, groupId: number) => {
-    const data = await $fetch<{ id: number; status: string }>(
-      `/api/groups/${groupId}/join-requests/${requestId}`,
-      { method: 'PATCH', body: { status: 'APPROVED' } },
-    )
-    const app = applications.value.find(a => a.id === requestId)
-    if (app) app.status = 'APPROVED'
-  }
-
-  const reject = async (requestId: number, groupId: number) => {
-    const data = await $fetch<{ id: number; status: string }>(
-      `/api/groups/${groupId}/join-requests/${requestId}`,
-      { method: 'PATCH', body: { status: 'REJECTED' } },
-    )
-    const app = applications.value.find(a => a.id === requestId)
-    if (app) app.status = 'REJECTED'
-  }
+  const approve = (app: Application) => updateStatus(app, 'APPROVED')
+  const reject = (app: Application) => updateStatus(app, 'REJECTED')
 
   const statusLabel = (status: string): string => {
     const map: Record<string, string> = { PENDING: '保留中', APPROVED: '承認済み', REJECTED: '却下' }
@@ -57,17 +48,21 @@ export const useApplications = () => {
   }
 
   const statusClass = (status: string): string => {
-    const map: Record<string, string> = { PENDING: 'status-pending', APPROVED: 'status-approved', REJECTED: 'status-rejected' }
+    const map: Record<string, string> = {
+      PENDING: 'status-pending',
+      APPROVED: 'status-approved',
+      REJECTED: 'status-rejected'
+    }
     return map[status] ?? ''
   }
 
   return {
     applications,
+    error,
     fetchApplications,
-    addApplication,
     approve,
     reject,
     statusLabel,
-    statusClass,
+    statusClass
   }
 }

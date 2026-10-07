@@ -1,47 +1,17 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { FetchError } from 'ofetch'
-
-// GET /api/groups/:id/goals のレスポンス
-interface Goal {
-  id: number
-  title: string
-  description: string | null
-  source: 'USER' | 'SYSTEM'
-  createdBy: { id: number; name: string } | null
-  createdAt: string
-  voteCount: number
-  reactionCount: number
-  hasVoted: boolean
-}
-
-// API のエラーメッセージを取り出す
-const errorMessage = (e: unknown, fallback: string) =>
-  e instanceof FetchError ? (e.data?.message ?? fallback) : fallback
-
-const REACTIONS = ['❤️', '🎉', '🚀']
-
 const route = useRoute()
-const groupId = computed(() => route.query.id as string | undefined)
+const groupId = computed(() => queryString(route.query.id))
 
-const goals = ref<Goal[]>([])
 const loading = ref(true)
-const error = ref('')
+const { goals, error, fetchGoals, toggleVote, toggleReaction } = useGoals(groupId)
 
-const fetchGoals = async () => {
+const loadGoals = async () => {
   if (!groupId.value) {
     error.value = 'グループIDが指定されていません'
-    loading.value = false
-    return
+  } else {
+    await fetchGoals()
   }
-  try {
-    goals.value = (await $fetch<Goal[]>(`/api/groups/${groupId.value}/goals`)) ?? []
-    error.value = ''
-  } catch (e) {
-    error.value = errorMessage(e, '目標の読み込みに失敗しました')
-  } finally {
-    loading.value = false
-  }
+  loading.value = false
 }
 
 // --- 目標提案（メンバー → グループ） ---
@@ -56,7 +26,7 @@ const proposeGoal = async () => {
   try {
     await $fetch(`/api/groups/${groupId.value}/goals`, {
       method: 'POST',
-      body: { title, description: newDescription.value.trim() || undefined },
+      body: { title, description: newDescription.value.trim() || undefined }
     })
     newTitle.value = ''
     newDescription.value = ''
@@ -84,33 +54,9 @@ const suggestGoal = async () => {
   }
 }
 
-// --- 投票（もう一度押すと取り消し） ---
-const toggleVote = async (goal: Goal) => {
-  try {
-    const result = await $fetch<{ voted: boolean }>(`/api/goals/${goal.id}/vote`, { method: 'POST' })
-    goal.hasVoted = result.voted
-    goal.voteCount += result.voted ? 1 : -1
-  } catch (e) {
-    error.value = errorMessage(e, '投票に失敗しました')
-  }
-}
-
-// --- リアクション（もう一度押すと取り消し） ---
-const toggleReaction = async (goal: Goal, emoji: string) => {
-  try {
-    const result = await $fetch<{ reacted: boolean }>(`/api/goals/${goal.id}/reaction`, {
-      method: 'POST',
-      body: { emoji },
-    })
-    goal.reactionCount += result.reacted ? 1 : -1
-  } catch (e) {
-    error.value = errorMessage(e, 'リアクションに失敗しました')
-  }
-}
-
 const formatDate = (iso: string) => new Date(iso).toLocaleDateString('ja-JP')
 
-onMounted(fetchGoals)
+onMounted(loadGoals)
 </script>
 
 <template>
@@ -181,8 +127,15 @@ onMounted(fetchGoals)
               </td>
               <td class="col-reaction">
                 <div class="vote-row">
-                  <button v-for="emoji in REACTIONS" :key="emoji" class="vote" @click="toggleReaction(goal, emoji)">{{ emoji }}</button>
-                  <span class="reaction-total">{{ goal.reactionCount }}</span>
+                  <button
+                    v-for="r in goal.reactions"
+                    :key="r.emoji"
+                    class="vote"
+                    :class="{ voted: r.reacted }"
+                    @click="toggleReaction(goal, r)"
+                  >
+                    {{ r.emoji }} {{ r.count }}
+                  </button>
                 </div>
               </td>
             </tr>
@@ -376,7 +329,6 @@ onMounted(fetchGoals)
 }
 .vote:hover:not(:disabled) { background: #e7f1ea; border-color: #6fa885; }
 .vote.voted { background: #d9ece0; border-color: #6fa885; color: #3f7757; font-weight: 600; }
-.reaction-total { color: #857b6f; font-size: 0.8rem; margin-left: 2px; }
 .vote:disabled { opacity: 0.45; cursor: default; }
 
 .col-reaction { width: 1%; }

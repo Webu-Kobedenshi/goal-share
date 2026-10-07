@@ -2,11 +2,19 @@
   <div class="page-container">
     <header class="page-header">
       <h1>グループ参加申請</h1>
-      <NuxtLink to="/group" class="back-link">← グループにもどる</NuxtLink>
+      <NuxtLink to="/" class="back-link">← トップにもどる</NuxtLink>
     </header>
 
     <section class="form-section">
-      <form @submit.prevent="handleSubmit">
+      <!-- 承認されるまではメンバーではないので、グループページには遷移しない -->
+      <div v-if="submitted" class="done">
+        <p>参加申請を送りました。オーナーが承認するとトップの「マイグループ」に表示されます。</p>
+        <div class="actions">
+          <NuxtLink to="/" class="link-button">トップへ</NuxtLink>
+        </div>
+      </div>
+
+      <form v-else @submit.prevent="handleSubmit">
         <div class="field">
           <label for="groupId">グループID</label>
           <input id="groupId" v-model="groupId" type="number" placeholder="参加したいグループのIDを入力" />
@@ -28,12 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
 const groupId = ref<number | null>(null)
 const message = ref('')
 const error = ref('')
 const submitting = ref(false)
+const submitted = ref(false)
 
 const handleSubmit = async () => {
   if (!groupId.value) {
@@ -45,11 +52,11 @@ const handleSubmit = async () => {
   try {
     await $fetch(`/api/groups/${groupId.value}/join-requests`, {
       method: 'POST',
-      body: { message: message.value.trim() || undefined },
+      body: { message: message.value.trim() || undefined }
     })
-    await navigateTo(`/group?id=${groupId.value}`)
-  } catch (e: any) {
-    error.value = e?.data?.message ?? '申請に失敗しました'
+    submitted.value = true
+  } catch (e) {
+    error.value = errorMessage(e, '申請に失敗しました')
   } finally {
     submitting.value = false
   }
@@ -166,5 +173,18 @@ const handleSubmit = async () => {
 .actions button:hover {
   transform: translateY(-1px);
   opacity: 0.92;
+}
+.done p {
+  margin: 0 0 16px;
+}
+
+.link-button {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #5e9c7a;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
 }
 </style>

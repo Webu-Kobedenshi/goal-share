@@ -1,100 +1,62 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-
 interface Member {
   id: number
   name: string
-  email: string
   role: string
   joinedAt: string
 }
 
-interface Goal {
+interface GroupDetail {
   id: number
-  title: string
-  description: string | null
-  source: 'USER' | 'SYSTEM'
-  createdBy: { id: number; name: string } | null
-  createdAt: string
-  voteCount: number
-  reactionCount: number
-  hasVoted: boolean
+  name: string
+  myRole: string
+  members: Member[]
 }
 
 const route = useRoute()
-const group = ref<{ id: number; name: string; myRole: string; members: Member[] } | null>(null)
-const goals = ref<Goal[]>([])
+const groupId = computed(() => queryString(route.query.id))
+
+const group = ref<GroupDetail | null>(null)
 const loading = ref(true)
+const loadError = ref('')
+const { goals, error, fetchGoals, toggleVote, toggleReaction } = useGoals(groupId)
+
 const goalTitle = ref('')
 const goalDescription = ref('')
 const addingGoal = ref(false)
-const error = ref('')
 
 const fetchGroup = async () => {
-  const gid = route.query.id
-  if (!gid) {
-    error.value = 'グループIDが指定されていません'
+  if (!groupId.value) {
+    loadError.value = 'グループIDが指定されていません'
     loading.value = false
     return
   }
   try {
-    const [g, gs] = await Promise.all([
-      $fetch(`/api/groups/${gid}`),
-      $fetch(`/api/groups/${gid}/goals`),
-    ])
-    group.value = g
-    goals.value = gs ?? []
-  } catch (e: any) {
-    error.value = e?.data?.message ?? 'グループの読み込みに失敗しました'
+    group.value = await $fetch<GroupDetail>(`/api/groups/${groupId.value}`)
+    await fetchGoals()
+  } catch (e) {
+    loadError.value = errorMessage(e, 'グループの読み込みに失敗しました')
   } finally {
     loading.value = false
   }
 }
 
 const addGoal = async () => {
-  const gid = route.query.id
-  if (!goalTitle.value.trim() || !gid) return
+  const title = goalTitle.value.trim()
+  if (!title || !groupId.value) return
   addingGoal.value = true
   try {
-    await $fetch(`/api/groups/${gid}/goals`, {
+    await $fetch(`/api/groups/${groupId.value}/goals`, {
       method: 'POST',
-      body: { title: goalTitle.value.trim(), description: goalDescription.value.trim() || undefined },
+      body: { title, description: goalDescription.value.trim() || undefined }
     })
     goalTitle.value = ''
     goalDescription.value = ''
-    const gs = await $fetch(`/api/groups/${gid}/goals`)
-    goals.value = gs ?? []
-  } catch (e: any) {
-    error.value = e?.data?.message ?? '目標の追加に失敗しました'
+    await fetchGoals()
+  } catch (e) {
+    error.value = errorMessage(e, '目標の追加に失敗しました')
   } finally {
     addingGoal.value = false
-  }
-}
-
-const toggleVote = async (goalId: number) => {
-  try {
-    const result = await $fetch<{ voted: boolean }>(`/api/goals/${goalId}/vote`, { method: 'POST' })
-    const goal = goals.value.find(g => g.id === goalId)
-    if (goal) {
-      goal.hasVoted = result.voted
-      goal.voteCount += result.voted ? 1 : -1
-    }
-  } catch {
-    // ignore
-  }
-}
-
-const toggleReaction = async (goalId: number, emoji: string) => {
-  try {
-    await $fetch(`/api/goals/${goalId}/reaction`, {
-      method: 'POST',
-      body: { emoji },
-    })
-    const gid = route.query.id
-    const gs = await $fetch(`/api/groups/${gid}/goals`)
-    goals.value = gs ?? []
-  } catch {
-    // ignore
   }
 }
 
@@ -104,14 +66,22 @@ onMounted(fetchGroup)
 <template>
   <div class="page-container">
     <div v-if="loading" class="loading">読み込み中...</div>
-    <div v-else-if="error" class="error-msg">{{ error }}</div>
+    <div v-else-if="loadError" class="error-msg">{{ loadError }}</div>
     <template v-else-if="group">
       <header class="group-header">
         <h1>{{ group.name }}</h1>
         <div class="header-meta">
           <span>{{ group.members.length }}人</span>
           <span class="role-badge">{{ group.myRole === 'OWNER' ? 'オーナー' : 'メンバー' }}</span>
+          <span>グループID: {{ group.id }}</span>
         </div>
+        <NuxtLink
+          v-if="group.myRole === 'OWNER'"
+          :to="{ path: '/group/applications', query: { id: group.id } }"
+          class="header-link"
+        >
+          参加申請を確認する →
+        </NuxtLink>
       </header>
 
       <section class="goals-section">
@@ -127,8 +97,10 @@ onMounted(fetchGroup)
           <div class="field">
             <textarea v-model="goalDescription" placeholder="詳細（任意）" class="textarea-field" rows="2"></textarea>
           </div>
-          <button type="submit" :disabled="addingGoal" class="add-btn">追加</button>
+          <button type="submit" :disabled="addingGoal || !goalTitle.trim()" class="add-btn">追加</button>
         </form>
+
+        <p v-if="error" class="error-inline">{{ error }}</p>
 
         <div v-if="goals.length === 0" class="empty">目標がまだありません。</div>
         <div v-else class="goal-list">
@@ -141,21 +113,17 @@ onMounted(fetchGroup)
               <span class="goal-date">{{ new Date(goal.createdAt).toLocaleDateString('ja-JP') }}</span>
             </div>
             <div class="goal-actions">
-              <button
-                class="action-btn"
-                :class="{ active: goal.hasVoted }"
-                @click="toggleVote(goal.id)"
-              >
+              <button class="action-btn" :class="{ active: goal.hasVoted }" @click="toggleVote(goal)">
                 👍 {{ goal.voteCount }}
               </button>
-              <button class="action-btn" @click="toggleReaction(goal.id, '❤️')">
-                ❤️
-              </button>
-              <button class="action-btn" @click="toggleReaction(goal.id, '🎉')">
-                🎉
-              </button>
-              <button class="action-btn" @click="toggleReaction(goal.id, '🚀')">
-                🚀
+              <button
+                v-for="r in goal.reactions"
+                :key="r.emoji"
+                class="action-btn"
+                :class="{ active: r.reacted }"
+                @click="toggleReaction(goal, r)"
+              >
+                {{ r.emoji }} {{ r.count }}
               </button>
             </div>
           </div>
@@ -209,6 +177,20 @@ onMounted(fetchGroup)
   gap: 12px;
   font-size: 0.9rem;
   color: rgba(255, 255, 255, 0.85);
+}
+.header-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.header-link:hover { text-decoration: underline; }
+.error-inline {
+  color: #c1584f;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
 }
 .goals-section {
   background-color: #fffdfa;

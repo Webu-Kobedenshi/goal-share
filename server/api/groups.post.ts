@@ -1,28 +1,25 @@
 import { z } from 'zod'
 import prisma from '../utils/prisma'
 import { requireUser } from '../utils/session'
+import { parseBody } from '../utils/validation'
 
 const schema = z.object({
-  name: z.string().min(1, 'グループ名を入力してください'),
+  name: z.string().trim().min(1, 'グループ名を入力してください').max(100, 'グループ名は100文字以内にしてください')
 })
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
-  const body = await readBody(event)
-  const result = schema.safeParse(body)
-  if (!result.success) {
-    throw createError({ statusCode: 400, message: result.error.issues[0].message })
-  }
+  const { name } = await parseBody(event, schema)
 
   const group = await prisma.group.create({
     data: {
-      name: result.data.name,
+      name,
       createdBy: user.id,
       members: {
-        create: { userId: user.id, role: 'OWNER' },
-      },
+        create: { userId: user.id, role: 'OWNER' }
+      }
     },
-    select: { id: true, name: true, createdAt: true },
+    select: { id: true, name: true, createdAt: true }
   })
 
   return group

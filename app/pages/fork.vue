@@ -3,11 +3,11 @@ import { ref } from 'vue'
 
 const selectedOption = ref<'create' | 'join' | null>(null)
 const groupName = ref('')
-const groupDescription = ref('')
 const groupCode = ref('')
 const joinMessage = ref('')
 const error = ref('')
 const submitting = ref(false)
+const joinSubmitted = ref(false)
 
 const handleCreateGroup = () => {
   selectedOption.value = 'create'
@@ -20,6 +20,7 @@ const handleJoinGroup = () => {
 const handleBack = () => {
   selectedOption.value = null
   error.value = ''
+  joinSubmitted.value = false
 }
 
 const submitCreate = async () => {
@@ -33,8 +34,8 @@ const submitCreate = async () => {
       body: { name },
     })
     await navigateTo(`/group?id=${group.id}`)
-  } catch (e: any) {
-    error.value = e?.data?.message ?? '作成に失敗しました'
+  } catch (e) {
+    error.value = errorMessage(e, '作成に失敗しました')
   } finally {
     submitting.value = false
   }
@@ -50,9 +51,10 @@ const submitJoin = async () => {
       method: 'POST',
       body: { message: joinMessage.value.trim() || undefined },
     })
-    await navigateTo(`/group?id=${gid}`)
-  } catch (e: any) {
-    error.value = e?.data?.message ?? '申請に失敗しました'
+    // 承認されるまではメンバーではないので、グループページには遷移しない
+    joinSubmitted.value = true
+  } catch (e) {
+    error.value = errorMessage(e, '申請に失敗しました')
   } finally {
     submitting.value = false
   }
@@ -120,7 +122,13 @@ const submitJoin = async () => {
       </header>
 
       <section class="form-section">
-        <form class="form-container" @submit.prevent="submitJoin">
+        <div v-if="joinSubmitted" class="form-container">
+          <p>参加申請を送りました。オーナーが承認するとトップの「マイグループ」に表示されます。</p>
+          <div class="form-actions">
+            <NuxtLink to="/" class="submit-btn">トップへ</NuxtLink>
+          </div>
+        </div>
+        <form v-else class="form-container" @submit.prevent="submitJoin">
           <div class="form-group">
             <label for="group-code">グループコード（ID）</label>
             <input
@@ -354,6 +362,11 @@ const submitJoin = async () => {
 .submit-btn {
   background: #5e9c7a;
   color: #ffffff;
+}
+
+a.submit-btn {
+  text-align: center;
+  text-decoration: none;
 }
 
 .submit-btn:hover {

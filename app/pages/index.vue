@@ -13,11 +13,11 @@
           <input id="group-name" v-model="groupName" type="text" placeholder="グループ名を入力" />
         </div>
         <div class="actions">
-          <button type="button" class="secondary" @click="addMember">ユーザーを追加</button>
-          <button type="submit" class="primary">グループを作成</button>
+          <button type="submit" class="primary" :disabled="creating">グループを作成</button>
         </div>
       </form>
       <p v-if="createError" class="error">{{ createError }}</p>
+      <p class="join-hint">ほかのグループに入りたいときは <NuxtLink to="/group/apply">参加申請</NuxtLink> から。</p>
     </section>
 
     <section class="groups-section">
@@ -64,8 +64,8 @@ const handleCreateGroup = async () => {
     await $fetch('/api/groups', { method: 'POST', body: { name } })
     groupName.value = ''
     await fetchGroups()
-  } catch (e: any) {
-    createError.value = e?.data?.message ?? '作成に失敗しました'
+  } catch (e) {
+    createError.value = errorMessage(e, '作成に失敗しました')
   } finally {
     creating.value = false
   }
@@ -172,8 +172,20 @@ onMounted(fetchGroups)
   background: #5e9c7a;
 }
 
-.actions button.secondary {
-  background: #c1584f;
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.join-hint {
+  margin: 16px 0 0;
+  font-size: 0.9rem;
+  color: #857b6f;
+}
+
+.join-hint a {
+  color: #5e9c7a;
+  font-weight: 600;
 }
 
 .error {

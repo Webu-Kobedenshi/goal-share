@@ -2,19 +2,14 @@
   <div class="page-container">
     <header class="page-header">
       <h1>参加申請一覧</h1>
-      <NuxtLink to="/group" class="back-link">← グループにもどる</NuxtLink>
+      <NuxtLink :to="{ path: '/group', query: { id: groupId } }" class="back-link">← グループにもどる</NuxtLink>
     </header>
 
     <section class="applications-section">
-      <div class="field">
-        <label for="gid">グループID</label>
-        <input id="gid" v-model="groupId" type="number" placeholder="グループIDを入力" class="input-field" />
-        <button class="load-btn" @click="loadApplications">読み込む</button>
-      </div>
+      <p v-if="error" class="error">{{ error }}</p>
 
-      <div v-if="applications.length === 0" class="empty-state">
-        現在、申請はありません。
-      </div>
+      <div v-if="loading" class="empty-state">読み込み中...</div>
+      <div v-else-if="!error && applications.length === 0" class="empty-state">現在、申請はありません。</div>
 
       <div v-for="app in applications" :key="app.id" class="application-card">
         <div class="app-header">
@@ -34,8 +29,8 @@
         </div>
 
         <div v-if="app.status === 'PENDING'" class="app-actions">
-          <button class="btn-approve" @click="approve(app.id, app.groupId)">承認</button>
-          <button class="btn-reject" @click="reject(app.id, app.groupId)">却下</button>
+          <button class="btn-approve" @click="approve(app)">承認</button>
+          <button class="btn-reject" @click="reject(app)">却下</button>
         </div>
       </div>
     </section>
@@ -43,15 +38,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+// グループページのオーナー向けリンク（/group/applications?id=...）から開く
+const route = useRoute()
+const groupId = computed(() => queryString(route.query.id))
+const loading = ref(true)
 
-const groupId = ref<number | null>(null)
-const { applications, fetchApplications, approve, reject, statusLabel, statusClass } = useApplications()
+const { applications, error, fetchApplications, approve, reject, statusLabel, statusClass } = useApplications()
 
-const loadApplications = () => {
-  if (!groupId.value) return
-  fetchApplications(groupId.value)
-}
+onMounted(async () => {
+  if (groupId.value) {
+    await fetchApplications(groupId.value)
+  } else {
+    error.value = 'グループIDが指定されていません'
+  }
+  loading.value = false
+})
 </script>
 
 <style scoped>
@@ -96,40 +97,6 @@ const loadApplications = () => {
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 12px 30px -12px rgba(120, 100, 70, 0.22);
-}
-
-.field {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  align-items: flex-start;
-}
-
-.field label {
-  font-weight: 600;
-  margin-top: 8px;
-  min-width: 80px;
-}
-
-.input-field {
-  flex: 1;
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-
-.load-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #0f172a;
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
 }
 
 .empty-state {
@@ -243,5 +210,10 @@ const loadApplications = () => {
 
 .btn-reject {
   background: #c1584f;
+}
+.error {
+  color: #c1584f;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
 }
 </style>

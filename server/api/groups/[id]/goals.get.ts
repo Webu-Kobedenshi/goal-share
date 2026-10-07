@@ -1,27 +1,23 @@
 import prisma from '../../../utils/prisma'
 import { requireUser } from '../../../utils/session'
+import { parseIdParam } from '../../../utils/validation'
+import { requireGroupMember } from '../../../utils/groupAccess'
+import { REACTION_EMOJIS } from '#shared/utils/reactions'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
-  const rawId = getRouterParam(event, 'id')
-  const groupId = Number(rawId)
-  if (!rawId || Number.isNaN(groupId)) throw createError({ statusCode: 400, message: '無効なグループIDです' })
-
-  const membership = await prisma.groupMember.findUnique({
-    where: { groupId_userId: { groupId, userId: user.id } },
-  })
-  if (!membership) {
-    throw createError({ statusCode: 403, message: 'このグループにアクセスできません' })
-  }
+  const groupId = parseIdParam(event, 'id', 'グループID')
+  await requireGroupMember(groupId, user.id)
 
   const goals = await prisma.goal.findMany({
     where: { groupId },
     include: {
       creator: { select: { id: true, name: true } },
-      _count: { select: { votes: true, reactions: true } },
+      _count: { select: { votes: true } },
       votes: { where: { userId: user.id }, take: 1 },
+      reactions: { select: { emoji: true, userId: true } }
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: 'desc' }
   })
 
   return goals.map((g) => ({
@@ -33,7 +29,12 @@ export default defineEventHandler(async (event) => {
     createdAt: g.createdAt,
     updatedAt: g.updatedAt,
     voteCount: g._count.votes,
-    reactionCount: g._count.reactions,
     hasVoted: g.votes.length > 0,
+    // 絵文字ごとの件数と、自分が付けているかどうか
+    reactions: REACTION_EMOJIS.map((emoji) => ({
+      emoji,
+      count: g.reactions.filter((r) => r.emoji === emoji).length,
+      reacted: g.reactions.some((r) => r.emoji === emoji && r.userId === user.id)
+    }))
   }))
 })

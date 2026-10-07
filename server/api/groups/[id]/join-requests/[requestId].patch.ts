@@ -1,66 +1,45 @@
 import { z } from 'zod'
 import prisma from '../../../../utils/prisma'
 import { requireUser } from '../../../../utils/session'
+import { parseBody, parseIdParam } from '../../../../utils/validation'
+import { requireGroupMember } from '../../../../utils/groupAccess'
 
 const schema = z.object({
-  status: z.enum(['APPROVED', 'REJECTED']),
+  status: z.enum(['APPROVED', 'REJECTED'])
 })
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
-  const rawId = getRouterParam(event, 'id')
-  const groupId = Number(rawId)
-  const rawRid = getRouterParam(event, 'requestId')
-  const requestId = Number(rawRid)
-  if (!rawId || Number.isNaN(groupId)) throw createError({ statusCode: 400, message: '無効なグループIDです' })
-  if (!rawRid || Number.isNaN(requestId)) throw createError({ statusCode: 400, message: '無効な申請IDです' })
-
-  const membership = await prisma.groupMember.findUnique({
-    where: { groupId_userId: { groupId, userId: user.id } },
-  })
-  if (!membership || membership.role !== 'OWNER') {
-    throw createError({ statusCode: 403, message: 'この操作はグループのオーナーのみ可能です' })
-  }
+  const groupId = parseIdParam(event, 'id', 'グループID')
+  const requestId = parseIdParam(event, 'requestId', '申請ID')
+  await requireGroupMember(groupId, user.id, { owner: true })
+  const { status } = await parseBody(event, schema)
 
   const joinRequest = await prisma.groupJoinRequest.findUnique({
-    where: { id: requestId },
+    where: { id: requestId }
   })
   if (!joinRequest || joinRequest.groupId !== groupId) {
     throw createError({ statusCode: 404, message: '申請が見つかりません' })
   }
-  if (joinRequest.status !== 'PENDING') {
-    throw createError({ statusCode: 409, message: 'この申請はすでに処理済みです' })
-  }
 
-  const body = await readBody(event)
-  const result = schema.safeParse(body)
-  if (!result.success) {
-    throw createError({ statusCode: 400, message: result.error.issues[0].message })
-  }
-
-  const { status } = result.data
-
-  const updated = await prisma.$transaction(async (tx) => {
-    const req = await tx.groupJoinRequest.update({
-      where: { id: requestId },
-      data: { status },
+  await prisma.$transaction(async (tx) => {
+    // PENDING のときだけ更新する。同時に処理された場合は片方だけが成功する
+    const { count } = await tx.groupJoinRequest.updateMany({
+      where: { id: requestId, status: 'PENDING' },
+      data: { status }
     })
-
-    if (status === 'APPROVED') {
-      await tx.groupMember.create({
-        data: {
-          groupId,
-          userId: joinRequest.userId,
-          role: 'MEMBER',
-        },
-      })
+    if (count === 0) {
+      throw createError({ statusCode: 409, message: 'この申請はすでに処理済みです' })
     }
 
-    return req
+    if (status === 'APPROVED') {
+      await tx.groupMember.upsert({
+        where: { groupId_userId: { groupId, userId: joinRequest.userId } },
+        create: { groupId, userId: joinRequest.userId, role: 'MEMBER' },
+        update: {}
+      })
+    }
   })
 
-  return {
-    id: updated.id,
-    status: updated.status,
-  }
+  return { id: requestId, status }
 })
