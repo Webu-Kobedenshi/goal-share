@@ -1,0 +1,21 @@
+// システムがランダムで提案する「軽い目標」の候補
+export const LIGHT_GOALS: { title: string; description: string }[] = [
+  { title: '1日コップ1杯多く水を飲む', description: 'まずは小さな健康習慣から' },
+  { title: '寝る前の10分はスマホを見ない', description: '睡眠の質を上げる第一歩' },
+  { title: '1日5分ストレッチする', description: '体をほぐしてリフレッシュ' },
+  { title: '1日1回は階段を使う', description: '無理なく運動量を増やす' },
+  { title: '毎日3分だけ机を片づける', description: '散らかる前にリセット' },
+  { title: '1日1ページ本を読む', description: '1ページなら続けやすい' },
+  { title: '今日よかったことを1つ書く', description: '小さな前向きを記録する' },
+  { title: '朝起きたらカーテンを開ける', description: '朝日を浴びて目を覚ます' },
+  { title: '1日10分散歩する', description: '気分転換にもなる' },
+  { title: '1日1回「ありがとう」を伝える', description: '身近な人に感謝を言葉で' },
+  { title: '週に1回新しい料理を作る', description: 'いつもと違うレシピに挑戦' },
+  { title: '毎日英単語を3つ覚える', description: '少しずつ語彙を増やす' },
+  { title: '食事のときは野菜から食べる', description: '手軽な食生活の改善' },
+  { title: '1日1回深呼吸を3回する', description: 'ひと息ついて気持ちを整える' },
+  { title: '不要なメールやアプリを1つ消す', description: 'デジタルの片づけ' },
+  { title: 'いつもより10分早く寝る', description: '少しずつ生活リズムを整える' },
+  { title: '1日1回姿勢を意識して座り直す', description: '肩こり・腰痛の予防に' },
+  { title: '週に1回家族や友人に連絡する', description: 'つながりを大切に' },
+]

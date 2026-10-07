@@ -2,28 +2,25 @@
   <div class="page-container">
     <header class="page-header">
       <h1>参加申請一覧</h1>
-      <NuxtLink to="/group" class="back-link">← グループにもどる</NuxtLink>
+      <NuxtLink :to="{ path: '/group', query: { id: groupId } }" class="back-link">← グループにもどる</NuxtLink>
     </header>
 
     <section class="applications-section">
-      <div v-if="applications.length === 0" class="empty-state">
-        現在、申請はありません。
-      </div>
+      <p v-if="error" class="error">{{ error }}</p>
+
+      <div v-if="loading" class="empty-state">読み込み中...</div>
+      <div v-else-if="!error && applications.length === 0" class="empty-state">現在、申請はありません。</div>
 
       <div v-for="app in applications" :key="app.id" class="application-card">
         <div class="app-header">
-          <span class="app-group">{{ app.groupName }}</span>
+          <span class="app-group">{{ app.applicantName }}</span>
           <span class="app-badge" :class="statusClass(app.status)">{{ statusLabel(app.status) }}</span>
         </div>
 
         <div class="app-body">
           <div class="app-field">
-            <span class="app-field-label">グループID</span>
-            <span class="app-field-value">{{ app.groupId }}</span>
-          </div>
-          <div class="app-field">
-            <span class="app-field-label">申請者</span>
-            <span class="app-field-value">{{ app.applicantName }}</span>
+            <span class="app-field-label">メール</span>
+            <span class="app-field-value">{{ app.applicantEmail }}</span>
           </div>
           <div v-if="app.message" class="app-field">
             <span class="app-field-label">メッセージ</span>
@@ -31,9 +28,9 @@
           </div>
         </div>
 
-        <div v-if="app.status === 'pending'" class="app-actions">
-          <button class="btn-approve" @click="approve(app.id)">承認</button>
-          <button class="btn-reject" @click="reject(app.id)">却下</button>
+        <div v-if="app.status === 'PENDING'" class="app-actions">
+          <button class="btn-approve" @click="approve(app)">承認</button>
+          <button class="btn-reject" @click="reject(app)">却下</button>
         </div>
       </div>
     </section>
@@ -41,9 +38,21 @@
 </template>
 
 <script setup lang="ts">
-import { useApplications } from '#imports'
+// グループページのオーナー向けリンク（/group/applications?id=...）から開く
+const route = useRoute()
+const groupId = computed(() => queryString(route.query.id))
+const loading = ref(true)
 
-const { applications, approve, reject, statusLabel, statusClass } = useApplications()
+const { applications, error, fetchApplications, approve, reject, statusLabel, statusClass } = useApplications()
+
+onMounted(async () => {
+  if (groupId.value) {
+    await fetchApplications(groupId.value)
+  } else {
+    error.value = 'グループIDが指定されていません'
+  }
+  loading.value = false
+})
 </script>
 
 <style scoped>
@@ -201,5 +210,10 @@ const { applications, approve, reject, statusLabel, statusClass } = useApplicati
 
 .btn-reject {
   background: #c1584f;
+}
+.error {
+  color: #c1584f;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
 }
 </style>

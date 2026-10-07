@@ -2,6 +2,12 @@
 import { ref } from 'vue'
 
 const selectedOption = ref<'create' | 'join' | null>(null)
+const groupName = ref('')
+const groupCode = ref('')
+const joinMessage = ref('')
+const error = ref('')
+const submitting = ref(false)
+const joinSubmitted = ref(false)
 
 const handleCreateGroup = () => {
   selectedOption.value = 'create'
@@ -13,12 +19,50 @@ const handleJoinGroup = () => {
 
 const handleBack = () => {
   selectedOption.value = null
+  error.value = ''
+  joinSubmitted.value = false
+}
+
+const submitCreate = async () => {
+  const name = groupName.value.trim()
+  if (!name) { error.value = 'グループ名を入力してください'; return }
+  submitting.value = true
+  error.value = ''
+  try {
+    const group = await $fetch<{ id: number }>('/api/groups', {
+      method: 'POST',
+      body: { name },
+    })
+    await navigateTo(`/group?id=${group.id}`)
+  } catch (e) {
+    error.value = errorMessage(e, '作成に失敗しました')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const submitJoin = async () => {
+  const gid = Number(groupCode.value)
+  if (!gid) { error.value = '有効なグループコードを入力してください'; return }
+  submitting.value = true
+  error.value = ''
+  try {
+    await $fetch(`/api/groups/${gid}/join-requests`, {
+      method: 'POST',
+      body: { message: joinMessage.value.trim() || undefined },
+    })
+    // 承認されるまではメンバーではないので、グループページには遷移しない
+    joinSubmitted.value = true
+  } catch (e) {
+    error.value = errorMessage(e, '申請に失敗しました')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
 <template>
   <div class="page-container">
-    <!-- 初期選択画面 -->
     <template v-if="selectedOption === null">
       <header class="fork-header">
         <h1>グループ作成/参加</h1>
@@ -42,7 +86,6 @@ const handleBack = () => {
       </section>
     </template>
 
-    <!-- グループ作成画面 -->
     <template v-if="selectedOption === 'create'">
       <header class="action-header">
         <button class="back-button" @click="handleBack">← 戻る</button>
@@ -50,36 +93,28 @@ const handleBack = () => {
       </header>
 
       <section class="form-section">
-        <div class="form-container">
+        <form class="form-container" @submit.prevent="submitCreate">
           <div class="form-group">
             <label for="group-name">グループ名</label>
             <input
               id="group-name"
+              v-model="groupName"
               type="text"
               placeholder="グループ名を入力してください"
               class="input-field"
             />
           </div>
 
-          <div class="form-group">
-            <label for="group-description">説明</label>
-            <textarea
-              id="group-description"
-              placeholder="グループの説明を入力してください（オプション）"
-              class="textarea-field"
-              rows="4"
-            ></textarea>
-          </div>
+          <p v-if="error" class="error">{{ error }}</p>
 
           <div class="form-actions">
-            <button class="cancel-btn" @click="handleBack">キャンセル</button>
-            <button class="submit-btn">作成</button>
+            <button type="button" class="cancel-btn" @click="handleBack">キャンセル</button>
+            <button type="submit" class="submit-btn" :disabled="submitting">作成</button>
           </div>
-        </div>
+        </form>
       </section>
     </template>
 
-    <!-- グループ参加申請画面 -->
     <template v-if="selectedOption === 'join'">
       <header class="action-header">
         <button class="back-button" @click="handleBack">← 戻る</button>
@@ -87,13 +122,20 @@ const handleBack = () => {
       </header>
 
       <section class="form-section">
-        <div class="form-container">
+        <div v-if="joinSubmitted" class="form-container">
+          <p>参加申請を送りました。オーナーが承認するとトップの「マイグループ」に表示されます。</p>
+          <div class="form-actions">
+            <NuxtLink to="/" class="submit-btn">トップへ</NuxtLink>
+          </div>
+        </div>
+        <form v-else class="form-container" @submit.prevent="submitJoin">
           <div class="form-group">
-            <label for="group-code">グループコード</label>
+            <label for="group-code">グループコード（ID）</label>
             <input
               id="group-code"
+              v-model="groupCode"
               type="text"
-              placeholder="参加するグループのコードを入力してください"
+              placeholder="参加するグループのIDを入力してください"
               class="input-field"
             />
           </div>
@@ -102,17 +144,20 @@ const handleBack = () => {
             <label for="join-message">参加メッセージ</label>
             <textarea
               id="join-message"
+              v-model="joinMessage"
               placeholder="参加理由や自己紹介を入力してください（オプション）"
               class="textarea-field"
               rows="4"
             ></textarea>
           </div>
 
+          <p v-if="error" class="error">{{ error }}</p>
+
           <div class="form-actions">
-            <button class="cancel-btn" @click="handleBack">キャンセル</button>
-            <button class="submit-btn">申請</button>
+            <button type="button" class="cancel-btn" @click="handleBack">キャンセル</button>
+            <button type="submit" class="submit-btn" :disabled="submitting">申請</button>
           </div>
-        </div>
+        </form>
       </section>
     </template>
   </div>
@@ -127,7 +172,6 @@ const handleBack = () => {
   color: #4a4038;
 }
 
-/* ===== ヘッダー ===== */
 .fork-header {
   background: linear-gradient(135deg, #6fa885 0%, #8fc19f 100%);
   color: #ffffff;
@@ -181,7 +225,6 @@ const handleBack = () => {
   flex: 1;
 }
 
-/* ===== オプション選択セクション ===== */
 .options-section {
   background-color: #fffdfa;
   border: 1px solid #ddd0b6;
@@ -236,7 +279,6 @@ const handleBack = () => {
   font-weight: 400;
 }
 
-/* ===== フォームセクション ===== */
 .form-section {
   background-color: #fffdfa;
   border: 1px solid #ddd0b6;
@@ -286,7 +328,6 @@ const handleBack = () => {
   resize: vertical;
 }
 
-/* ===== フォームアクション ===== */
 .form-actions {
   display: flex;
   gap: 12px;
@@ -305,6 +346,10 @@ const handleBack = () => {
   transition: all 0.2s ease;
 }
 
+.submit-btn:disabled {
+  opacity: 0.6;
+}
+
 .cancel-btn {
   background-color: #ede1c9;
   color: #6b5f52;
@@ -319,12 +364,22 @@ const handleBack = () => {
   color: #ffffff;
 }
 
+a.submit-btn {
+  text-align: center;
+  text-decoration: none;
+}
+
 .submit-btn:hover {
   transform: translateY(-2px);
   opacity: 0.92;
 }
 
-/* ===== レスポンシブ ===== */
+.error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin: 0 0 8px;
+}
+
 @media (max-width: 768px) {
   .page-container {
     padding: 24px 16px;

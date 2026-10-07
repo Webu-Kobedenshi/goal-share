@@ -2,24 +2,22 @@
   <div class="page-container">
     <header class="page-header">
       <h1>グループ参加申請</h1>
-      <NuxtLink to="/group" class="back-link">← グループにもどる</NuxtLink>
+      <NuxtLink to="/" class="back-link">← トップにもどる</NuxtLink>
     </header>
 
     <section class="form-section">
-      <form @submit.prevent="handleSubmit">
+      <!-- 承認されるまではメンバーではないので、グループページには遷移しない -->
+      <div v-if="submitted" class="done">
+        <p>参加申請を送りました。オーナーが承認するとトップの「マイグループ」に表示されます。</p>
+        <div class="actions">
+          <NuxtLink to="/" class="link-button">トップへ</NuxtLink>
+        </div>
+      </div>
+
+      <form v-else @submit.prevent="handleSubmit">
         <div class="field">
           <label for="groupId">グループID</label>
           <input id="groupId" v-model="groupId" type="number" placeholder="参加したいグループのIDを入力" />
-        </div>
-
-        <div class="field">
-          <label for="groupName">グループ名</label>
-          <input id="groupName" v-model="groupName" type="text" placeholder="参加したいグループの名前を入力" />
-        </div>
-
-        <div class="field">
-          <label for="applicantName">申請者名</label>
-          <input id="applicantName" v-model="applicantName" type="text" placeholder="あなたの名前を入力" />
         </div>
 
         <div class="field">
@@ -27,8 +25,10 @@
           <textarea id="message" v-model="message" placeholder="グループ運営へのメッセージ（任意）" rows="4"></textarea>
         </div>
 
+        <p v-if="error" class="error">{{ error }}</p>
+
         <div class="actions">
-          <button type="submit">申請する</button>
+          <button type="submit" :disabled="submitting">申請する</button>
         </div>
       </form>
     </section>
@@ -36,28 +36,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
 const groupId = ref<number | null>(null)
-const groupName = ref('')
-const applicantName = ref('')
 const message = ref('')
+const error = ref('')
+const submitting = ref(false)
+const submitted = ref(false)
 
-const { addApplication } = useApplications()
-
-const handleSubmit = () => {
-  if (!groupId.value || !groupName.value.trim() || !applicantName.value.trim()) return
-  addApplication({
-    groupId: groupId.value,
-    groupName: groupName.value.trim(),
-    applicantName: applicantName.value.trim(),
-    message: message.value.trim()
-  })
-  groupId.value = null
-  groupName.value = ''
-  applicantName.value = ''
-  message.value = ''
-  navigateTo('/group/applications')
+const handleSubmit = async () => {
+  if (!groupId.value) {
+    error.value = 'グループIDを入力してください'
+    return
+  }
+  submitting.value = true
+  error.value = ''
+  try {
+    await $fetch(`/api/groups/${groupId.value}/join-requests`, {
+      method: 'POST',
+      body: { message: message.value.trim() || undefined }
+    })
+    submitted.value = true
+  } catch (e) {
+    error.value = errorMessage(e, '申請に失敗しました')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 
@@ -141,6 +143,12 @@ const handleSubmit = () => {
   resize: vertical;
 }
 
+.error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
 .actions {
   display: flex;
   gap: 12px;
@@ -158,8 +166,25 @@ const handleSubmit = () => {
   transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
+.actions button:disabled {
+  opacity: 0.6;
+}
+
 .actions button:hover {
   transform: translateY(-1px);
   opacity: 0.92;
+}
+.done p {
+  margin: 0 0 16px;
+}
+
+.link-button {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #5e9c7a;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
 }
 </style>
